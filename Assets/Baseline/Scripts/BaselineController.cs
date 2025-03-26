@@ -219,7 +219,6 @@ public class BaselineController : MonoBehaviour
 
         string logEntry0 = $"{round},0,{DateTime.Now.ToString("yyyyMMdd_HHmmss")},HeadPosition,{headPosition.x},{headPosition.y},{headPosition.z}\n";
         File.AppendAllText(gazeDataFilePath, logEntry0);
-        Debug.Log($"HeadPosition: {headPosition}");
         string logEntry1 = $"{round},1,{DateTime.Now.ToString("yyyyMMdd_HHmmss")},HeadForward,{headForward.x},{headForward.y},{headForward.z}\n";
         File.AppendAllText(gazeDataFilePath, logEntry1);
         string logEntry2 = $"{round},2,{DateTime.Now.ToString("yyyyMMdd_HHmmss")},HeadUp,{headUp.x},{headUp.y},{headUp.z}\n";
@@ -235,7 +234,6 @@ public class BaselineController : MonoBehaviour
 
         string logEntry4 = $"{round},4,{DateTime.Now.ToString("yyyyMMdd_HHmmss")},GazeOrigin,{gazeOrigin.x},{gazeOrigin.y},{gazeOrigin.z}\n";
         File.AppendAllText(gazeDataFilePath, logEntry4);
-        Debug.Log($"gazeOrigin: {gazeOrigin}");
         string logEntry5 = $"{round},5,{DateTime.Now.ToString("yyyyMMdd_HHmmss")},GazeDirection,{gazeDirection.x},{gazeDirection.y},{gazeDirection.z}\n";
         File.AppendAllText(gazeDataFilePath, logEntry5);
 
@@ -244,7 +242,6 @@ public class BaselineController : MonoBehaviour
         {
             string logEntry6 = $"{round},6,{DateTime.Now.ToString("yyyyMMdd_HHmmss")},Phantom,{hitInfo.point.x},{hitInfo.point.y},{hitInfo.point.z}\n";
             File.AppendAllText(gazeDataFilePath, logEntry6);
-            Debug.Log($"Phantom: {hitInfo}");
 
             foreach (var cube in SpineCubes)
             {
