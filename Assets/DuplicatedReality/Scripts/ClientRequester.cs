@@ -71,6 +71,8 @@ namespace Kinect4Azure
         [SerializeField] private Texture2D ColorInDepthImage;
 
         [Header("Calibration")]
+        public GameObject Phantom;
+        public GameObject Kinect;
         public GameObject SpinePlaceholder;
         public GameObject KinectPlaceholder;
         public GameObject Marker1;
@@ -88,11 +90,8 @@ namespace Kinect4Azure
         [Header("UI Elements")]
         public TextMeshProUGUI CalibrationText;
 
-        [Header("Virtual Guidance")]
-        public GameObject Phantom;
-        public List<GameObject> Cylinders = new List<GameObject>();
-
         [Header("Colliding Test")]
+        public List<GameObject> Cylinders = new List<GameObject>();
         public Collider Gorilla;
         public List<GameObject> SpineCubes = new List<GameObject>();
 
@@ -361,7 +360,8 @@ namespace Kinect4Azure
             while (trackingKinect)
             {
                 OToMarker2 = Matrix4x4.TRS(Marker2.transform.position, Marker2.transform.rotation, Vector3.one);
-                
+                Kinect.transform.SetPositionAndRotation(KinectPlaceholder.transform.position, KinectPlaceholder.transform.rotation);
+
                 yield return null;
             }
 
@@ -611,7 +611,6 @@ namespace Kinect4Azure
 
             string logEntry0 = $"{round},0,{DateTime.Now.ToString("yyyyMMdd_HHmmss")},HeadPosition,{headPosition.x},{headPosition.y},{headPosition.z}\n";
             File.AppendAllText(gazeDataFilePath, logEntry0);
-            Debug.Log($"HeadPosition: {headPosition}");
             string logEntry1 = $"{round},1,{DateTime.Now.ToString("yyyyMMdd_HHmmss")},HeadForward,{headForward.x},{headForward.y},{headForward.z}\n";
             File.AppendAllText(gazeDataFilePath, logEntry1);
             string logEntry2 = $"{round},2,{DateTime.Now.ToString("yyyyMMdd_HHmmss")},HeadUp,{headUp.x},{headUp.y},{headUp.z}\n";
@@ -627,7 +626,6 @@ namespace Kinect4Azure
 
             string logEntry4 = $"{round},4,{DateTime.Now.ToString("yyyyMMdd_HHmmss")},GazeOrigin,{gazeOrigin.x},{gazeOrigin.y},{gazeOrigin.z}\n";
             File.AppendAllText(gazeDataFilePath, logEntry4);
-            Debug.Log($"gazeOrigin: {gazeOrigin}");
             string logEntry5 = $"{round},5,{DateTime.Now.ToString("yyyyMMdd_HHmmss")},GazeDirection,{gazeDirection.x},{gazeDirection.y},{gazeDirection.z}\n";
             File.AppendAllText(gazeDataFilePath, logEntry5);
 

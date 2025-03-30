@@ -10,9 +10,12 @@ using UnityEngine.InputSystem;
 
 public class BaselineController : MonoBehaviour
 {
-    [Header("Calibration")]
+    [Header("Tracking")]
+    public GameObject Phantom;
     public GameObject Marker1;
     public GameObject SpinePlaceholder;
+    public GameObject Marker3;
+    public GameObject TipCylinder;
 
     [Header("Input Actions")]
     public InputAction CalibrationSpineAction;  // Left bumper
@@ -20,15 +23,13 @@ public class BaselineController : MonoBehaviour
     public InputAction Round1Action; // X
     public InputAction Round2Action; // B
     public InputAction Round3Action; // A
+    public InputAction PlaceNeedleAction; // Left trigger
 
     [Header("UI Elements")]
-    public TextMeshProUGUI CalibrationText;
-
-    [Header("Virtual Guidance")]
-    public GameObject Phantom;
-    public List<GameObject> Cylinders = new List<GameObject>();
+    public TextMeshProUGUI CalibrationText; 
 
     [Header("Colliding Test")]
+    public List<GameObject> Cylinders = new List<GameObject>();
     public Collider Gorilla;
     public List<GameObject> SpineCubes = new List<GameObject>();
 
@@ -80,6 +81,9 @@ public class BaselineController : MonoBehaviour
 
         Round3Action.Enable();
         Round3Action.performed += OnRound3;
+
+        PlaceNeedleAction.Enable();
+        PlaceNeedleAction.performed += OnPlaceNeedle;
     }
 
     private void OnDisable()
@@ -98,6 +102,9 @@ public class BaselineController : MonoBehaviour
 
         Round3Action.Disable();
         Round3Action.performed -= OnRound3;
+
+        PlaceNeedleAction.Disable();
+        PlaceNeedleAction.performed -= OnPlaceNeedle;
     }
 
     private void OnRound0(InputAction.CallbackContext context)
@@ -123,6 +130,42 @@ public class BaselineController : MonoBehaviour
         round = 3;
         UpdateCylinderVisibility();
     }
+
+    private void OnPlaceNeedle(InputAction.CallbackContext context)
+    {
+        // Record TipCylinder
+        Vector3 tipPos = TipCylinder.transform.position;
+        Quaternion tipRot = TipCylinder.transform.rotation;
+
+        string tipLogPos = $"{round},10,{DateTime.Now:yyyyMMdd_HHmmss},TipPosition,{tipPos.x},{tipPos.y},{tipPos.z}\n";
+        string tipLogRot = $"{round},11,{DateTime.Now:yyyyMMdd_HHmmss},TipRotation,{tipRot.eulerAngles.x},{tipRot.eulerAngles.y},{tipRot.eulerAngles.z}\n";
+        File.AppendAllText(gazeDataFilePath, tipLogPos);
+        File.AppendAllText(gazeDataFilePath, tipLogRot);
+
+        // Find which active cylinder
+        Collider tipCollider = TipCylinder.GetComponent<Collider>();
+        foreach (var cylinder in Cylinders)
+        {
+            if (!cylinder.activeSelf) continue;
+
+            Collider cylCollider = cylinder.GetComponent<Collider>();
+            if (tipCollider.bounds.Intersects(cylCollider.bounds))
+            {
+                Vector3 cylPos = cylinder.transform.position;
+                Quaternion cylRot = cylinder.transform.rotation;
+
+                // Record Cylinder
+                string cylLogPos = $"{round},12,{DateTime.Now:yyyyMMdd_HHmmss},{cylinder.name}_Position,{cylPos.x},{cylPos.y},{cylPos.z}\n";
+                string cylLogRot = $"{round},13,{DateTime.Now:yyyyMMdd_HHmmss},{cylinder.name}_Rotation,{cylRot.eulerAngles.x},{cylRot.eulerAngles.y},{cylRot.eulerAngles.z}\n";
+                File.AppendAllText(gazeDataFilePath, cylLogPos);
+                File.AppendAllText(gazeDataFilePath, cylLogRot);
+
+                Debug.Log($"TipCylinder collided with {cylinder.name}");
+            }
+        }
+    }
+
+
 
     private void UpdateCylinderVisibility()
     {

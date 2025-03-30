@@ -65,6 +65,7 @@ public class PBM_Observer : MonoBehaviour
 
 
     [Header("Calibration")]
+    public GameObject Phantom;
     public GameObject SpinePlaceholder;
     public GameObject KinectPlaceholder;
     public GameObject Marker1;
@@ -81,11 +82,8 @@ public class PBM_Observer : MonoBehaviour
     [Header("UI Elements")]
     public TextMeshProUGUI CalibrationText;
 
-    [Header("Virtual Guidance")]
-    public GameObject Phantom;
-    public List<GameObject> Cylinders = new List<GameObject>();
-
     [Header("Colliding Test")]
+    public List<GameObject> Cylinders = new List<GameObject>();
     public Collider Gorilla;
     public List<GameObject> SpineCubes = new List<GameObject>();
 
