@@ -58,7 +58,7 @@ Shader "PBM/ViewMerge"
                 fixed4 realContentcol = tex2D(_RealContentTex, realContent_uv);
                 fixed4 virtualContentcol = tex2D(_MainTex, i.uv);
 
-                float alpha = 0.4;
+                float alpha = 0.5;
 
                 // return float4(realContentcol.rgb * (1 - alpha) +
                 //               virtualContentcol.rgb * alpha, 1);

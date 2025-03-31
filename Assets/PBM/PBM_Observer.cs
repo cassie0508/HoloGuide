@@ -70,6 +70,8 @@ public class PBM_Observer : MonoBehaviour
     public GameObject KinectPlaceholder;
     public GameObject Marker1;
     public GameObject Marker2;
+    public GameObject Marker3;
+    public GameObject TipCylinder;
 
     [Header("Input Actions")]
     public InputAction CalibrationSpineAction;  // Left bumper
@@ -78,9 +80,7 @@ public class PBM_Observer : MonoBehaviour
     public InputAction Round1Action; // X
     public InputAction Round2Action; // B
     public InputAction Round3Action; // A
-
-    [Header("UI Elements")]
-    public TextMeshProUGUI CalibrationText;
+    public InputAction PlaceNeedleAction; // Left trigger
 
     [Header("Colliding Test")]
     public List<GameObject> Cylinders = new List<GameObject>();
@@ -129,7 +129,10 @@ public class PBM_Observer : MonoBehaviour
 
         UpdateCylinderVisibility();
 
-        UpdateStatusText("Press left bumper to calibrate spine");
+        //pbm = new PBM();
+        //CapturingCamera = FindObjectOfType<PBM_CaptureCamera>();
+        //CapturingCamera.transform.SetPositionAndRotation(OToKinect.GetPosition(), OToKinect.rotation);
+        //RegisterCapturer(CapturingCamera);
     }
     
 
@@ -152,6 +155,9 @@ public class PBM_Observer : MonoBehaviour
 
         Round3Action.Enable();
         Round3Action.performed += OnRound3;
+
+        PlaceNeedleAction.Enable();
+        PlaceNeedleAction.performed += OnPlaceNeedle;
     }
 
     private void OnDisable()
@@ -173,6 +179,9 @@ public class PBM_Observer : MonoBehaviour
 
         Round3Action.Disable();
         Round3Action.performed -= OnRound3;
+
+        PlaceNeedleAction.Disable();
+        PlaceNeedleAction.performed -= OnPlaceNeedle;
     }
 
     private void OnRound0(InputAction.CallbackContext context)
@@ -197,6 +206,43 @@ public class PBM_Observer : MonoBehaviour
     {
         round = 3;
         UpdateCylinderVisibility();
+    }
+
+    private void OnPlaceNeedle(InputAction.CallbackContext context)
+    {
+        // Record TipCylinder
+        Vector3 tipPos = TipCylinder.transform.position;
+        Quaternion tipRot = TipCylinder.transform.rotation;
+
+        string tipLogPos = $"{round},10,{DateTime.Now:yyyyMMdd_HHmmss},TipPosition,{tipPos.x},{tipPos.y},{tipPos.z}\n";
+        string tipLogRot = $"{round},11,{DateTime.Now:yyyyMMdd_HHmmss},TipRotation,{tipRot.eulerAngles.x},{tipRot.eulerAngles.y},{tipRot.eulerAngles.z}\n";
+        File.AppendAllText(gazeDataFilePath, tipLogPos);
+        File.AppendAllText(gazeDataFilePath, tipLogRot);
+
+        // Find which active cylinder
+        Collider tipCollider = TipCylinder.GetComponent<Collider>();
+        foreach (var cylinder in Cylinders)
+        {
+            if (!cylinder.activeSelf) continue;
+
+            Collider cylCollider = cylinder.GetComponent<Collider>();
+            if (tipCollider.bounds.Intersects(cylCollider.bounds))
+            {
+                Vector3 cylPos = cylinder.transform.position;
+                Quaternion cylRot = cylinder.transform.rotation;
+
+                // Record Cylinder
+                string cylLogPos = $"{round},12,{DateTime.Now:yyyyMMdd_HHmmss},{cylinder.name}_Position,{cylPos.x},{cylPos.y},{cylPos.z}\n";
+                string cylLogRot = $"{round},13,{DateTime.Now:yyyyMMdd_HHmmss},{cylinder.name}_Rotation,{cylRot.eulerAngles.x},{cylRot.eulerAngles.y},{cylRot.eulerAngles.z}\n";
+                File.AppendAllText(gazeDataFilePath, cylLogPos);
+                File.AppendAllText(gazeDataFilePath, cylLogRot);
+
+                // Disable Cylinder
+                cylinder.SetActive(false);
+
+                Debug.Log($"TipCylinder collided with {cylinder.name}");
+            }
+        }
     }
 
     private void UpdateCylinderVisibility()
@@ -237,7 +283,6 @@ public class PBM_Observer : MonoBehaviour
         else
         {
             trackingSpine = false;
-            UpdateStatusText("");
 
             // Save marker1 position and rotation in csv file
             string logEntryMarker1Position = $",,{DateTime.Now.ToString("yyyyMMdd_HHmmss")},Marker1,{OToMarker1.GetPosition().x},{OToMarker1.GetPosition().y},{OToMarker1.GetPosition().z}\n";
@@ -256,7 +301,6 @@ public class PBM_Observer : MonoBehaviour
         else
         {
             trackingKinect = false;
-            UpdateStatusText("");
 
             // Save marker2 position and rotation in csv file
             string logEntryMarker2Position = $",,{DateTime.Now.ToString("yyyyMMdd_HHmmss")},Marker2,{OToMarker2.GetPosition().x},{OToMarker2.GetPosition().y},{OToMarker2.GetPosition().z}\n";
@@ -313,7 +357,6 @@ public class PBM_Observer : MonoBehaviour
     {
         trackingSpine = true;
         Marker1.SetActive(true);
-        UpdateStatusText("Tracking marker 1... Press left bumper again to confirm.");
 
         while (trackingSpine)
         {
@@ -330,7 +373,6 @@ public class PBM_Observer : MonoBehaviour
     {
         trackingKinect = true;
         Marker2.SetActive(true);
-        UpdateStatusText("Tracking marker 2... Press right bumper again to confirm.");
 
         while (trackingKinect)
         {
@@ -341,14 +383,6 @@ public class PBM_Observer : MonoBehaviour
         }
 
         Marker2.SetActive(false);
-    }
-
-    private void UpdateStatusText(string message)
-    {
-        if (CalibrationText != null)
-        {
-            CalibrationText.text = message;
-        }
     }
 
     private void Update()

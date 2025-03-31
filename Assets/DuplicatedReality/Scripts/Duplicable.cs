@@ -12,6 +12,8 @@ namespace DuplicatedReality
 
         private Renderer _Renderer;
 
+        private Collider _Collider;
+
         private Shader OriginalOnly;
         private Shader DuplicateOnly;
         private Shader OriginalAndDuplicate;

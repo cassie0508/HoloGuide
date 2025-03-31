@@ -25,9 +25,6 @@ public class BaselineController : MonoBehaviour
     public InputAction Round3Action; // A
     public InputAction PlaceNeedleAction; // Left trigger
 
-    [Header("UI Elements")]
-    public TextMeshProUGUI CalibrationText; 
-
     [Header("Colliding Test")]
     public List<GameObject> Cylinders = new List<GameObject>();
     public Collider Gorilla;
@@ -61,8 +58,6 @@ public class BaselineController : MonoBehaviour
         gazeProvider = CoreServices.InputSystem.GazeProvider;
 
         UpdateCylinderVisibility();
-
-        UpdateStatusText("Press left bumper to calibrate spine");
     }
 
     private void OnEnable()
@@ -160,6 +155,9 @@ public class BaselineController : MonoBehaviour
                 File.AppendAllText(gazeDataFilePath, cylLogPos);
                 File.AppendAllText(gazeDataFilePath, cylLogRot);
 
+                // Disable Cylinder
+                cylinder.SetActive(false);
+
                 Debug.Log($"TipCylinder collided with {cylinder.name}");
             }
         }
@@ -206,7 +204,6 @@ public class BaselineController : MonoBehaviour
         {
             trackingSpine = false;
             hasCalibrationDone = true;
-            UpdateStatusText("");
 
             // Save marker1 position and rotation in csv file
             string logEntryMarker1Position = $",,{DateTime.Now.ToString("yyyyMMdd_HHmmss")},Marker1,{OToMarker1.GetPosition().x},{OToMarker1.GetPosition().y},{OToMarker1.GetPosition().z}\n";
@@ -220,7 +217,6 @@ public class BaselineController : MonoBehaviour
     {
         trackingSpine = true;
         Marker1.SetActive(true);
-        UpdateStatusText("Tracking marker 1... Press left bumper again to confirm.");
 
         while (trackingSpine)
         {
@@ -231,14 +227,6 @@ public class BaselineController : MonoBehaviour
         }
 
         Marker1.SetActive(false);
-    }
-
-    private void UpdateStatusText(string message)
-    {
-        if (CalibrationText != null)
-        {
-            CalibrationText.text = message;
-        }
     }
 
     private void Update()
