@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System.IO;
 
 [RequireComponent(typeof(Camera))]
 public class PBM_CaptureCamera : MonoBehaviour
@@ -71,8 +72,18 @@ public class PBM_CaptureCamera : MonoBehaviour
     private bool isProcessingFrame = false;
     private bool hasReceivedFirstFrame = false;
 
+    private string delayLogFilePath;
+
     private void Awake()
     {
+        // Create csv file for delay
+        delayLogFilePath = Path.Combine(Application.persistentDataPath, "DelayLog.csv");
+        if (!File.Exists(delayLogFilePath))
+        {
+            File.AppendAllText(delayLogFilePath, "Timestamp,DelayMilliseconds\n");
+        }
+
+
         _Camera = GetComponent<Camera>();
         _Camera.stereoTargetEye = StereoTargetEyeMask.None; // Set stereo target to none
         _Camera.cullingMask &= ~(1 << LayerMask.NameToLayer("PBM"));
@@ -144,13 +155,16 @@ public class PBM_CaptureCamera : MonoBehaviour
         if (isProcessingFrame) return;
         isProcessingFrame = true;
 
+        // Get delay
         long timestamp = BitConverter.ToInt64(msg, 0);
         byte[] data = new byte[msg.Length - sizeof(long)];
         Buffer.BlockCopy(msg, sizeof(long), data, 0, data.Length);
 
         long receivedTimestamp = DateTime.UtcNow.Ticks;
         double delayMilliseconds = (receivedTimestamp - timestamp) / TimeSpan.TicksPerMillisecond;
-        //Debug.Log($"Delay for this processing frame: {delayMilliseconds} ms");
+
+        string logLine = $"{DateTime.UtcNow:yyyyMMdd_HHmmss_fff},{delayMilliseconds:F2}\n";
+        File.AppendAllText(delayLogFilePath, logLine);
 
         lock (dataLock)
         {

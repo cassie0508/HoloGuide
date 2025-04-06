@@ -129,6 +129,8 @@ namespace Kinect4Azure
         private IMixedRealityGazeProvider gazeProvider;
         private string gazeDataFilePath;
 
+        private string delayLogFilePath;
+
 
         private void Awake()
         {
@@ -143,6 +145,13 @@ namespace Kinect4Azure
                 // 0: HeadPosition; 1: HeadForward; 2: HeadUp; 3: HeadRight
                 // 4: GazeOrigin; 5: GazeDirection; 6: GazeHitPhantom; 7: GazeHitSpineCubes; 8: GazeHitCylinders; 9: GazeHitGorilla
                 File.AppendAllText(gazeDataFilePath, "Round,Type,Timestamp,HitObject,PositionX,PositionY,PositionZ\n");
+            }
+
+            // Create csv file for delay
+            delayLogFilePath = Path.Combine(Application.persistentDataPath, "DelayLog.csv");
+            if (!File.Exists(delayLogFilePath))
+            {
+                File.AppendAllText(delayLogFilePath, "Timestamp,DelayMilliseconds\n");
             }
 
             gazeProvider = CoreServices.InputSystem.GazeProvider;
@@ -560,11 +569,9 @@ namespace Kinect4Azure
 
                     long receivedTimestamp = DateTime.UtcNow.Ticks;
                     double delayMilliseconds = (receivedTimestamp - timestamp) / TimeSpan.TicksPerMillisecond;
-                    //Debug.Log($"Delay for this processing frame: {delayMilliseconds} ms");
-                    //UnityMainThreadDispatcher.Dispatcher.Enqueue(() =>
-                    //{
-                    //    DelayTMP.SetText($"Delay in requesting this frame: {delayMilliseconds}");
-                    //});
+
+                    string logLine = $"{DateTime.UtcNow:yyyyMMdd_HHmmss_fff},{delayMilliseconds:F2}\n";
+                    File.AppendAllText(delayLogFilePath, logLine);
 
                     // Get data
                     lock (dataLock)
